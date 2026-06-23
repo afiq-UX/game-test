@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git --version)",
       "Bash(gh auth *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(echo \"tsc done \\(exit $?\\)\")"
     ]
   }
 }
