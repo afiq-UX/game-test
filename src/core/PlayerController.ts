@@ -62,16 +62,24 @@ export class PlayerController {
     return this.mesh.rotation.y;
   }
 
-  update(delta: number, movement: THREE.Vector2) {
+  update(delta: number, movement: THREE.Vector2, cameraYaw: number) {
     if (movement.length() > 0) {
-      // World-relative movement mapped to the fixed camera's screen axes:
-      // screen-up = world +Z (W), screen-right = world -X (D). Move directly
-      // along this vector (true strafing) instead of walking along facing.
-      const worldMove = new THREE.Vector3(-movement.x, 0, movement.y);
+      // Camera-relative movement (GTA-style): W walks where the camera faces.
+      // Ground basis from the camera yaw — forward = (sinY, 0, cosY), and
+      // right = (-cosY, 0, sinY). D (movement.x) strafes right, W (movement.y)
+      // walks forward.
+      const sinY = Math.sin(cameraYaw);
+      const cosY = Math.cos(cameraYaw);
+      const worldMove = new THREE.Vector3(
+        sinY * movement.y - cosY * movement.x,
+        0,
+        cosY * movement.y + sinY * movement.x,
+      );
+      if (worldMove.lengthSq() > 1) worldMove.normalize();
       this.velocity.copy(worldMove).multiplyScalar(MOVE_SPEED * delta);
 
       // Rotate the mesh to visually face its travel direction.
-      this.targetRotation = Math.atan2(movement.x, movement.y);
+      this.targetRotation = Math.atan2(worldMove.x, worldMove.z);
       const currentRot = this.mesh.rotation.y;
       let diff = this.targetRotation - currentRot;
       while (diff > Math.PI) diff -= Math.PI * 2;

@@ -6,9 +6,31 @@ const PLAYER_HEIGHT = 1.6;
 export class CollisionSystem {
   private boxes: THREE.Box3[] = [];
   private playerBox = new THREE.Box3();
+  private ray = new THREE.Ray();
+  private rayHit = new THREE.Vector3();
 
   setColliders(boxes: THREE.Box3[]) {
     this.boxes = boxes;
+  }
+
+  /**
+   * Cast a ray from `origin` along the (assumed-normalized) `dir` and return the
+   * distance to the nearest collider, capped at `maxDist`. Used by the camera to
+   * pull in toward the player when a wall is behind it (GTA-style spring arm).
+   */
+  cameraCastDistance(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): number {
+    this.ray.origin.copy(origin);
+    this.ray.direction.copy(dir);
+
+    let nearest = maxDist;
+    for (const box of this.boxes) {
+      const hit = this.ray.intersectBox(box, this.rayHit);
+      if (hit) {
+        const d = origin.distanceTo(hit);
+        if (d < nearest) nearest = d;
+      }
+    }
+    return nearest;
   }
 
   resolveMovement(currentPos: THREE.Vector3, desiredPos: THREE.Vector3): THREE.Vector3 {

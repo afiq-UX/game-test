@@ -35,6 +35,9 @@ export class MenuScreens {
         <p style="margin: 0 0 8px; font-size: 0.95rem;">
           <strong>Move:</strong> WASD / Arrow keys / Joystick
         </p>
+        <p style="margin: 0 0 8px; font-size: 0.95rem;">
+          <strong>Look:</strong> Mouse (click to capture) / Drag right side
+        </p>
         <p style="margin: 0; font-size: 0.95rem;">
           <strong>Interact:</strong> E / Space / Tap button
         </p>

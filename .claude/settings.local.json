@@ -4,7 +4,8 @@
       "Bash(git --version)",
       "Bash(gh auth *)",
       "Bash(npx tsc *)",
-      "Bash(echo \"tsc done \\(exit $?\\)\")"
+      "Bash(echo \"tsc done \\(exit $?\\)\")",
+      "PowerShell(npx tsc --noEmit)"
     ]
   }
 }

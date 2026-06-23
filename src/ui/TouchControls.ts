@@ -3,8 +3,12 @@ import nipplejs from 'nipplejs';
 
 type JoystickManager = ReturnType<typeof nipplejs.create>;
 
+// Scales raw touch-drag pixels so look speed roughly matches mouse-look.
+const LOOK_TOUCH_SCALE = 1.4;
+
 export class TouchControls {
   private joystickVector = new THREE.Vector2();
+  private lookDelta = new THREE.Vector2();
   private _interactPressed = false;
   private container: HTMLDivElement;
   private actionBtn: HTMLButtonElement;
@@ -57,6 +61,48 @@ export class TouchControls {
       });
     }
 
+    // Look zone (right half) — drag to orbit the camera. Created before the
+    // action button so the button stays on top and still catches its own taps.
+    const lookZone = document.createElement('div');
+    lookZone.id = 'look-zone';
+    lookZone.style.cssText = `
+      position: absolute;
+      top: 0; right: 0;
+      width: 50%; height: 100%;
+      pointer-events: auto;
+      touch-action: none;
+    `;
+    this.container.appendChild(lookZone);
+
+    let lookId: number | null = null;
+    let lastX = 0;
+    let lastY = 0;
+    lookZone.addEventListener('touchstart', (e) => {
+      if (lookId !== null) return;
+      const t = e.changedTouches[0];
+      lookId = t.identifier;
+      lastX = t.clientX;
+      lastY = t.clientY;
+    });
+    lookZone.addEventListener('touchmove', (e) => {
+      for (const t of Array.from(e.changedTouches)) {
+        if (t.identifier === lookId) {
+          this.lookDelta.x += (t.clientX - lastX) * LOOK_TOUCH_SCALE;
+          this.lookDelta.y += (t.clientY - lastY) * LOOK_TOUCH_SCALE;
+          lastX = t.clientX;
+          lastY = t.clientY;
+          e.preventDefault();
+        }
+      }
+    }, { passive: false });
+    const endLook = (e: TouchEvent) => {
+      for (const t of Array.from(e.changedTouches)) {
+        if (t.identifier === lookId) lookId = null;
+      }
+    };
+    lookZone.addEventListener('touchend', endLook);
+    lookZone.addEventListener('touchcancel', endLook);
+
     // Action button (bottom-right)
     this.actionBtn = document.createElement('button');
     this.actionBtn.textContent = 'E';
@@ -89,6 +135,13 @@ export class TouchControls {
 
   getMovementVector(): THREE.Vector2 {
     return this.joystickVector.clone();
+  }
+
+  /** Accumulated drag-look movement (pixels) since the last call; resets to zero. */
+  consumeLookDelta(): THREE.Vector2 {
+    const out = this.lookDelta.clone();
+    this.lookDelta.set(0, 0);
+    return out;
   }
 
   isInteractPressed(): boolean {
