@@ -119,7 +119,7 @@ export class Game {
   }
 
   private setupLighting() {
-    const ambient = new THREE.AmbientLight(0xfff5e6, 0.5);
+    const ambient = new THREE.AmbientLight(0xfff5e6, 0.7);
     this.scene.add(ambient);
 
     const sun = new THREE.DirectionalLight(0xffffff, 1.2);
@@ -134,7 +134,7 @@ export class Game {
     sun.shadow.camera.far = 50;
     this.scene.add(sun);
 
-    const hemi = new THREE.HemisphereLight(0x87CEEB, 0x4a8c3f, 0.3);
+    const hemi = new THREE.HemisphereLight(0x87CEEB, 0x4a8c3f, 0.45);
     this.scene.add(hemi);
   }
 

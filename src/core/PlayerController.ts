@@ -33,6 +33,26 @@ export class PlayerController {
     head.castShadow = true;
     group.add(head);
 
+    // Simple face on the front (local +Z, the direction the mesh turns to face).
+    // Parented to the head so it never shifts the group's leg child indices.
+    const eyeGeo = new THREE.SphereGeometry(0.05, 8, 8);
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const pupilGeo = new THREE.SphereGeometry(0.025, 6, 6);
+    const pupilMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
+    for (const side of [-1, 1]) {
+      const eye = new THREE.Mesh(eyeGeo, eyeMat);
+      eye.position.set(side * 0.08, 0.04, 0.2);
+      head.add(eye);
+      const pupil = new THREE.Mesh(pupilGeo, pupilMat);
+      pupil.position.set(side * 0.08, 0.04, 0.235);
+      head.add(pupil);
+    }
+    const mouthGeo = new THREE.BoxGeometry(0.1, 0.025, 0.02);
+    const mouthMat = new THREE.MeshStandardMaterial({ color: 0x7a3b2e });
+    const mouth = new THREE.Mesh(mouthGeo, mouthMat);
+    mouth.position.set(0, -0.08, 0.21);
+    head.add(mouth);
+
     const hairGeo = new THREE.SphereGeometry(0.24, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2);
     const hairMat = new THREE.MeshStandardMaterial({ color: 0x2c2c2c });
     const hair = new THREE.Mesh(hairGeo, hairMat);

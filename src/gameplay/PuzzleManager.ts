@@ -6,6 +6,7 @@ export class PuzzleManager {
   private overlay: HTMLDivElement;
   private isActive = false;
   private resolvePromise?: (result: PuzzleResult) => void;
+  private cleanup?: () => void;
 
   constructor() {
     this.overlay = document.createElement('div');
@@ -61,12 +62,15 @@ export class PuzzleManager {
       }
 
       const skipBtn = document.createElement('button');
-      skipBtn.textContent = 'Skip (-5s)';
+      skipBtn.textContent = 'Skip (-5s penalty)';
       skipBtn.style.cssText = `
         margin-top: 16px; padding: 8px 20px;
-        background: #999; color: #fff; border: none;
+        background: #e74c3c; color: #fff; border: none;
         border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+        font-weight: 700;
       `;
+      skipBtn.addEventListener('mouseenter', () => { skipBtn.style.background = '#c0392b'; });
+      skipBtn.addEventListener('mouseleave', () => { skipBtn.style.background = '#e74c3c'; });
       skipBtn.addEventListener('click', () => this.finish('skipped'));
       container.appendChild(skipBtn);
 
@@ -76,6 +80,8 @@ export class PuzzleManager {
 
   private finish(result: PuzzleResult) {
     this.isActive = false;
+    this.cleanup?.();
+    this.cleanup = undefined;
     this.overlay.style.display = 'none';
     this.overlay.innerHTML = '';
     this.resolvePromise?.(result);
@@ -142,9 +148,13 @@ export class PuzzleManager {
   }
 
   private buildHoldButton(container: HTMLElement) {
+    const HOLD_DURATION = 3000;
+
     const desc = document.createElement('p');
-    desc.textContent = 'Hold the button for 3 seconds to turn off!';
-    desc.style.cssText = 'color: #666; margin-bottom: 16px;';
+    desc.innerHTML =
+      'Hold the <strong>E</strong> key for 3 seconds to turn it off!' +
+      '<br><span style="font-size: 0.8rem; color: #999;">On touch, press &amp; hold the button</span>';
+    desc.style.cssText = 'color: #666; margin-bottom: 16px; line-height: 1.4;';
     container.appendChild(desc);
 
     const btnWrap = document.createElement('div');
@@ -170,20 +180,22 @@ export class PuzzleManager {
     svg.appendChild(circle);
     btnWrap.appendChild(svg);
 
+    // Visual hold target. The E key drives it on desktop; press-and-hold the
+    // button works for mouse and touch too.
     const btn = document.createElement('button');
-    btn.textContent = 'HOLD';
+    btn.textContent = 'HOLD E';
     btn.style.cssText = `
       width: 100px; height: 100px;
       border-radius: 50%; border: 3px solid #4CAF50;
       background: #e8f5e9; color: #4CAF50;
-      font-size: 1.1rem; font-weight: 700;
+      font-size: 1rem; font-weight: 700;
       cursor: pointer; user-select: none;
       -webkit-user-select: none;
     `;
 
     let holdStart = 0;
     let animFrame = 0;
-    const HOLD_DURATION = 3000;
+    let holding = false;
 
     const updateProgress = () => {
       const elapsed = Date.now() - holdStart;
@@ -197,24 +209,51 @@ export class PuzzleManager {
       animFrame = requestAnimationFrame(updateProgress);
     };
 
-    const startHold = (e: Event) => {
-      e.preventDefault();
+    const startHold = () => {
+      // Guard against key auto-repeat and post-solve events restarting the timer.
+      if (holding || !this.isActive) return;
+      holding = true;
       holdStart = Date.now();
       btn.style.background = '#c8e6c9';
       updateProgress();
     };
 
     const stopHold = () => {
+      if (!holding) return;
+      holding = false;
       cancelAnimationFrame(animFrame);
       circle.setAttribute('stroke-dashoffset', `${circumference}`);
       btn.style.background = '#e8f5e9';
     };
 
-    btn.addEventListener('mousedown', startHold);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'KeyE' || e.code === 'Space') {
+        e.preventDefault();
+        startHold();
+      }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'KeyE' || e.code === 'Space') {
+        e.preventDefault();
+        stopHold();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+
+    const pressStart = (e: Event) => { e.preventDefault(); startHold(); };
+    btn.addEventListener('mousedown', pressStart);
     btn.addEventListener('mouseup', stopHold);
     btn.addEventListener('mouseleave', stopHold);
-    btn.addEventListener('touchstart', startHold);
+    btn.addEventListener('touchstart', pressStart, { passive: false });
     btn.addEventListener('touchend', stopHold);
+
+    // Tear down the global key listeners when the puzzle closes (solved/skipped).
+    this.cleanup = () => {
+      cancelAnimationFrame(animFrame);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
 
     btnWrap.appendChild(btn);
     container.appendChild(btnWrap);
