@@ -61,14 +61,15 @@ export class TouchControls {
       });
     }
 
-    // Look zone (right half) — drag to orbit the camera. Created before the
-    // action button so the button stays on top and still catches its own taps.
+    // Look zone (top half — "above the player") — drag to orbit the camera. Kept
+    // to the top so it never overlaps the bottom-left joystick or bottom-right
+    // action button. Created before the action button so the button stays on top.
     const lookZone = document.createElement('div');
     lookZone.id = 'look-zone';
     lookZone.style.cssText = `
       position: absolute;
-      top: 0; right: 0;
-      width: 50%; height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 50%;
       pointer-events: auto;
       touch-action: none;
     `;

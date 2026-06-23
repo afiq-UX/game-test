@@ -6,7 +6,9 @@ import { CollisionSystem } from './CollisionSystem';
 // with mouse-look (yaw/pitch), and springs in toward the player when a wall is
 // behind the camera so it never clips through the house.
 const DISTANCE = 3.6;            // ideal distance from the look target to the camera
-const MIN_DISTANCE = 1.0;        // closest the wall-collision pull-in is allowed to go
+const MIN_DISTANCE = 0.3;        // closest the pull-in may go (just behind the head, not
+                                 // inside it) — must stay below a hugged-wall clearance
+                                 // (~0.4) so a near wall always wins over this floor
 const COLLISION_PADDING = 0.25;  // keep the camera this far off a wall surface
 const TARGET_HEIGHT = 1.5;       // look at ~head height — the "POV height"
 const DEFAULT_PITCH = 0.22;      // gentle downward tilt at rest (radians)
