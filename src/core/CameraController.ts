@@ -21,9 +21,10 @@ export class CameraController {
   }
 
   private getDesiredPosition(): THREE.Vector3 {
-    const offset = OFFSET.clone();
-    offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.player.rotation);
-    return this.player.position.clone().add(offset);
+    // Fixed-orientation chase camera: follow the player's position but keep a
+    // constant world-space offset so the view never rotates with the player
+    // (rotating it makes turning feel like the whole world spins / inverted).
+    return this.player.position.clone().add(OFFSET);
   }
 
   update(delta: number) {

@@ -64,20 +64,19 @@ export class PlayerController {
 
   update(delta: number, movement: THREE.Vector2) {
     if (movement.length() > 0) {
-      this.targetRotation = Math.atan2(-movement.x, movement.y);
+      // World-relative movement mapped to the fixed camera's screen axes:
+      // screen-up = world +Z (W), screen-right = world -X (D). Move directly
+      // along this vector (true strafing) instead of walking along facing.
+      const worldMove = new THREE.Vector3(-movement.x, 0, movement.y);
+      this.velocity.copy(worldMove).multiplyScalar(MOVE_SPEED * delta);
 
+      // Rotate the mesh to visually face its travel direction.
+      this.targetRotation = Math.atan2(movement.x, movement.y);
       const currentRot = this.mesh.rotation.y;
       let diff = this.targetRotation - currentRot;
       while (diff > Math.PI) diff -= Math.PI * 2;
       while (diff < -Math.PI) diff += Math.PI * 2;
       this.mesh.rotation.y += diff * Math.min(1, ROTATION_SPEED * delta);
-
-      const forward = new THREE.Vector3(
-        -Math.sin(this.mesh.rotation.y),
-        0,
-        Math.cos(this.mesh.rotation.y)
-      );
-      this.velocity.copy(forward).multiplyScalar(MOVE_SPEED * delta);
 
       const desiredPos = this.mesh.position.clone().add(this.velocity);
       const resolvedPos = this.collision.resolveMovement(this.mesh.position, desiredPos);

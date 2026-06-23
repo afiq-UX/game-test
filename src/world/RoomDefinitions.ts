@@ -201,4 +201,7 @@ export const ROOMS: RoomDef[] = [
 ];
 
 // Player spawn position (in living room)
-export const PLAYER_SPAWN: [number, number, number] = [0, 0, 0];
+// Open floor in the living room between the coffee table (z 0.3) and the
+// tv-cabinet (z -1.8) — clear of all furniture colliders so the player
+// doesn't spawn embedded in a collider (which blocks all movement).
+export const PLAYER_SPAWN: [number, number, number] = [0, 0, -1];
