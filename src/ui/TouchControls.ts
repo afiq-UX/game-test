@@ -109,7 +109,7 @@ export class TouchControls {
     this.actionBtn.textContent = 'E';
     this.actionBtn.style.cssText = `
       position: absolute;
-      bottom: 60px; right: 30px;
+      bottom: 60px; left: 140px;
       width: 70px; height: 70px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.4);

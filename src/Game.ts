@@ -274,6 +274,9 @@ export class Game {
     // Room label
     this.hud.updateRoomLabel(this.playerController.position);
 
+    // Minimap
+    this.hud.updateMap(this.playerController.position, this.applianceManager.getAppliances());
+
     // Appliance glow animation
     this.applianceManager.update(this.elapsedTime);
 
