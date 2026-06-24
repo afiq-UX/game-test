@@ -14,7 +14,9 @@
       "PowerShell(npx tsc --noEmit; \"tsc exit: $LASTEXITCODE\")",
       "Bash(echo \"EXIT_CODE=$?\")",
       "Bash(cd \"/d/vibecode/melp game 2\" && cat .claude/settings.local.json)",
-      "PowerShell(\"HEAD InputManager has requestPointerLock?:\"; git show HEAD:src/core/InputManager.ts | Select-String -SimpleMatch \"requestPointerLock\" | ForEach-Object { $_.Line }; \"exit/empty above = NOT in HEAD\"; \"---\"; \"hash of disk file:\"; git hash-object \"src/core/InputManager.ts\"; \"hash in index:\"; git ls-files -s \"src/core/InputManager.ts\"; \"---\"; \"last commit touching it:\"; git log --oneline -1 -- src/core/InputManager.ts)"
+      "PowerShell(\"HEAD InputManager has requestPointerLock?:\"; git show HEAD:src/core/InputManager.ts | Select-String -SimpleMatch \"requestPointerLock\" | ForEach-Object { $_.Line }; \"exit/empty above = NOT in HEAD\"; \"---\"; \"hash of disk file:\"; git hash-object \"src/core/InputManager.ts\"; \"hash in index:\"; git ls-files -s \"src/core/InputManager.ts\"; \"---\"; \"last commit touching it:\"; git log --oneline -1 -- src/core/InputManager.ts)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(npm run *)"
     ]
   }
 }
