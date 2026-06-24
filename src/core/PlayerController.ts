@@ -9,32 +9,32 @@ export class PlayerController {
   private collision: CollisionSystem;
   private velocity = new THREE.Vector3();
   private targetRotation = 0;
+  private leftLeg!: THREE.Mesh;
+  private rightLeg!: THREE.Mesh;
 
   constructor(scene: THREE.Scene, collision: CollisionSystem) {
     this.collision = collision;
-    this.mesh = this.createPlaceholderCharacter();
+    this.mesh = new THREE.Group();
+    this.buildPlaceholderCharacter();
     scene.add(this.mesh);
   }
 
-  private createPlaceholderCharacter(): THREE.Group {
-    const group = new THREE.Group();
-
+  private buildPlaceholderCharacter() {
     const bodyGeo = new THREE.CylinderGeometry(0.25, 0.3, 0.8, 8);
     const bodyMat = new THREE.MeshStandardMaterial({ color: 0x3498db });
     const body = new THREE.Mesh(bodyGeo, bodyMat);
     body.position.y = 0.7;
     body.castShadow = true;
-    group.add(body);
+    this.mesh.add(body);
 
     const headGeo = new THREE.SphereGeometry(0.22, 8, 8);
     const headMat = new THREE.MeshStandardMaterial({ color: 0xf5d0a9 });
     const head = new THREE.Mesh(headGeo, headMat);
     head.position.y = 1.3;
     head.castShadow = true;
-    group.add(head);
+    this.mesh.add(head);
 
-    // Simple face on the front (local +Z, the direction the mesh turns to face).
-    // Parented to the head so it never shifts the group's leg child indices.
+    // Face parts are parented to the head so they stay attached as the body turns.
     const eyeGeo = new THREE.SphereGeometry(0.05, 8, 8);
     const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
     const pupilGeo = new THREE.SphereGeometry(0.025, 6, 6);
@@ -57,21 +57,27 @@ export class PlayerController {
     const hairMat = new THREE.MeshStandardMaterial({ color: 0x2c2c2c });
     const hair = new THREE.Mesh(hairGeo, hairMat);
     hair.position.y = 1.35;
-    group.add(hair);
+    this.mesh.add(hair);
 
     const legGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.5, 6);
     const legMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50 });
-    const leftLeg = new THREE.Mesh(legGeo, legMat);
-    leftLeg.position.set(-0.12, 0.25, 0);
-    leftLeg.castShadow = true;
-    group.add(leftLeg);
+    this.leftLeg = new THREE.Mesh(legGeo, legMat);
+    this.leftLeg.position.set(-0.12, 0.25, 0);
+    this.leftLeg.castShadow = true;
+    this.mesh.add(this.leftLeg);
 
-    const rightLeg = new THREE.Mesh(legGeo, legMat);
-    rightLeg.position.set(0.12, 0.25, 0);
-    rightLeg.castShadow = true;
-    group.add(rightLeg);
+    this.rightLeg = new THREE.Mesh(legGeo, legMat);
+    this.rightLeg.position.set(0.12, 0.25, 0);
+    this.rightLeg.castShadow = true;
+    this.mesh.add(this.rightLeg);
+  }
 
-    return group;
+  reset(spawn: [number, number, number]) {
+    this.mesh.position.set(spawn[0], spawn[1], spawn[2]);
+    this.mesh.rotation.y = 0;
+    this.targetRotation = 0;
+    this.leftLeg.rotation.x = 0;
+    this.rightLeg.rotation.x = 0;
   }
 
   get position(): THREE.Vector3 {
@@ -84,10 +90,7 @@ export class PlayerController {
 
   update(delta: number, movement: THREE.Vector2, cameraYaw: number) {
     if (movement.length() > 0) {
-      // Camera-relative movement (GTA-style): W walks where the camera faces.
-      // Ground basis from the camera yaw — forward = (sinY, 0, cosY), and
-      // right = (-cosY, 0, sinY). D (movement.x) strafes right, W (movement.y)
-      // walks forward.
+      // Camera-relative movement: W walks where the camera faces.
       const sinY = Math.sin(cameraYaw);
       const cosY = Math.cos(cameraYaw);
       const worldMove = new THREE.Vector3(
@@ -111,19 +114,11 @@ export class PlayerController {
       this.mesh.position.copy(resolvedPos);
 
       const time = performance.now() * 0.01;
-      const leftLeg = this.mesh.children[3];
-      const rightLeg = this.mesh.children[4];
-      if (leftLeg && rightLeg) {
-        leftLeg.rotation.x = Math.sin(time) * 0.5;
-        rightLeg.rotation.x = Math.sin(time + Math.PI) * 0.5;
-      }
+      this.leftLeg.rotation.x = Math.sin(time) * 0.5;
+      this.rightLeg.rotation.x = Math.sin(time + Math.PI) * 0.5;
     } else {
-      const leftLeg = this.mesh.children[3];
-      const rightLeg = this.mesh.children[4];
-      if (leftLeg && rightLeg) {
-        leftLeg.rotation.x *= 0.9;
-        rightLeg.rotation.x *= 0.9;
-      }
+      this.leftLeg.rotation.x *= 0.9;
+      this.rightLeg.rotation.x *= 0.9;
     }
   }
 }

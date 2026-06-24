@@ -1,4 +1,6 @@
 import { ROOMS } from '../world/RoomDefinitions';
+import { APPLIANCE_COUNT } from '../gameplay/ApplianceManager';
+import { GAME_DURATION } from '../gameConfig';
 import type * as THREE from 'three';
 
 export class HUD {
@@ -67,13 +69,13 @@ export class HUD {
     `;
     document.body.appendChild(this.roomLabel);
 
-    this.updateCounter(20);
-    this.updateTimer(300);
+    this.updateCounter(APPLIANCE_COUNT);
+    this.updateTimer(GAME_DURATION);
   }
 
   updateCounter(remaining: number) {
-    const turned = 20 - remaining;
-    this.counterEl.textContent = `Appliances: ${turned}/20`;
+    const turned = APPLIANCE_COUNT - remaining;
+    this.counterEl.textContent = `Appliances: ${turned}/${APPLIANCE_COUNT}`;
   }
 
   updateTimer(secondsLeft: number) {

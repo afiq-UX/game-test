@@ -1,4 +1,5 @@
 import type { Appliance } from './ApplianceManager';
+import { SKIP_PENALTY_SECONDS } from '../gameConfig';
 
 export type PuzzleResult = 'solved' | 'skipped' | 'cancelled';
 
@@ -62,7 +63,7 @@ export class PuzzleManager {
       }
 
       const skipBtn = document.createElement('button');
-      skipBtn.textContent = 'Skip (-5s penalty)';
+      skipBtn.textContent = `Skip (-${SKIP_PENALTY_SECONDS}s penalty)`;
       skipBtn.style.cssText = `
         margin-top: 16px; padding: 8px 20px;
         background: #e74c3c; color: #fff; border: none;
