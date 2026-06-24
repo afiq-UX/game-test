@@ -3,6 +3,12 @@ import type { Appliance, ApplianceManager } from './ApplianceManager';
 
 const INTERACT_DISTANCE = 2.0;
 
+function horizontalDistance(a: THREE.Vector3, b: THREE.Vector3): number {
+  const dx = a.x - b.x;
+  const dz = a.z - b.z;
+  return Math.sqrt(dx * dx + dz * dz);
+}
+
 export class InteractionSystem {
   private applianceManager: ApplianceManager;
   private promptEl: HTMLDivElement;
@@ -41,13 +47,13 @@ export class InteractionSystem {
     return this.nearestAppliance;
   }
 
-  update(playerPos: THREE.Vector3) {
+  update(playerPos: THREE.Vector3, isTouchDevice: boolean) {
     const active = this.applianceManager.getActiveAppliances();
     let nearest: Appliance | null = null;
     let nearestDist = INTERACT_DISTANCE;
 
     for (const appliance of active) {
-      const dist = playerPos.distanceTo(appliance.mesh.position);
+      const dist = horizontalDistance(playerPos, appliance.interactPosition);
       if (dist < nearestDist) {
         nearestDist = dist;
         nearest = appliance;
@@ -57,7 +63,11 @@ export class InteractionSystem {
     this.nearestAppliance = nearest;
 
     if (nearest) {
-      this.promptEl.textContent = `Press E — ${nearest.def.name}`;
+      const action = isTouchDevice ? 'Tap E' : 'Press E';
+      const label = nearest.def.switchPosition
+        ? `${nearest.def.name} switch`
+        : nearest.def.name;
+      this.promptEl.textContent = `${action} — ${label}`;
       this.promptEl.style.opacity = '1';
     } else {
       this.promptEl.style.opacity = '0';

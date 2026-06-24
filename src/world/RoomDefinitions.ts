@@ -105,7 +105,9 @@ export const ROOMS: RoomDef[] = [
       { start: [-2, 2.5], end: [2, 2.5] },
       // South wall
       { start: [-2, -2.5], end: [2, -2.5] },
-      // West wall shared with living room
+      // West wall with door to living room
+      { start: [-2, 2.5], end: [-2, 1] },
+      { start: [-2, 0], end: [-2, -2.5] },
       // East wall (exterior)
       { start: [2, 2.5], end: [2, -2.5] },
     ],
@@ -153,7 +155,9 @@ export const ROOMS: RoomDef[] = [
       { start: [-1.5, -2], end: [1.5, -2] },
       // West wall (exterior)
       { start: [-1.5, 2], end: [-1.5, -2] },
-      // East wall shared with kitchen
+      // East wall with door to kitchen
+      { start: [1.5, 2], end: [1.5, 0.5] },
+      { start: [1.5, -0.5], end: [1.5, -2] },
     ],
     furniture: [
       { type: 'toilet', position: [-0.7, 0.25, -1.2], size: [0.45, 0.5, 0.55], color: 0xf0f0f0 },
@@ -175,7 +179,9 @@ export const ROOMS: RoomDef[] = [
       { start: [-2, -2], end: [2, -2] },
       // Railing east
       { start: [2, 2], end: [2, -2] },
-      // West wall shared with kitchen
+      // West wall with door to kitchen
+      { start: [-2, 2], end: [-2, 0.5] },
+      { start: [-2, -0.5], end: [-2, -2] },
     ],
     furniture: [
       { type: 'rattan-chair', position: [0, 0.25, 0], size: [0.6, 0.5, 0.6], color: 0xc4a35a },
@@ -190,7 +196,9 @@ export const ROOMS: RoomDef[] = [
     size: [8, 3],
     floorColor: 0x999999, // concrete
     walls: [
-      // Only partial walls / pillars - open area
+      // North wall with doorway to kitchen (gap x -0.5..0.5)
+      { start: [-4, 1.5], end: [-0.5, 1.5] },
+      { start: [0.5, 1.5], end: [4, 1.5] },
       // West pillar
       { start: [-4, 1.5], end: [-3.8, 1.5] },
       // East pillar
