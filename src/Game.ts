@@ -10,6 +10,12 @@ import { PuzzleManager } from './gameplay/PuzzleManager';
 import { HUD } from './ui/HUD';
 import { MenuScreens } from './ui/MenuScreens';
 import { PLAYER_SPAWN } from './world/RoomDefinitions';
+import {
+  GAME_DURATION,
+  SKIP_PENALTY_SECONDS,
+  starsForTimeUsed,
+} from './gameConfig';
+import type { Appliance } from './gameplay/ApplianceManager';
 
 export class Game {
   private renderer!: THREE.WebGLRenderer;
@@ -27,11 +33,11 @@ export class Game {
   private puzzleManager!: PuzzleManager;
   private hud!: HUD;
 
-  private gameTime = 300; // 5 minutes
+  private gameTime = GAME_DURATION;
   private isPlaying = false;
-  private hasStarted = false;
   private hasEnded = false;
   private animationFrameId = 0;
+  private endOverlay: HTMLDivElement | null = null;
 
   init() {
     this.setupRenderer();
@@ -55,7 +61,6 @@ export class Game {
 
     const menu = new MenuScreens();
     menu.setOnStart(() => {
-      this.hasStarted = true;
       this.isPlaying = true;
       this.hud.show();
       this.clock.getDelta(); // reset delta so first frame isn't huge
@@ -100,7 +105,7 @@ export class Game {
     this.scene.fog = new THREE.Fog(0x87CEEB, 30, 60);
 
     this.camera = new THREE.PerspectiveCamera(
-      60,
+      55,
       window.innerWidth / window.innerHeight,
       0.1,
       100
@@ -150,7 +155,7 @@ export class Game {
     if (el) el.classList.add('hidden');
   }
 
-  private async openPuzzle(appliance: import('./gameplay/ApplianceManager').Appliance) {
+  private async openPuzzle(appliance: Appliance) {
     // Release the mouse so the puzzle overlay's buttons are clickable.
     this.inputManager.setPointerLockEnabled(false);
     const result = await this.puzzleManager.open(appliance);
@@ -158,7 +163,7 @@ export class Game {
       this.applianceManager.turnOff(appliance);
     } else if (result === 'skipped') {
       this.applianceManager.turnOff(appliance);
-      this.gameTime -= 5;
+      this.gameTime = Math.max(0, this.gameTime - SKIP_PENALTY_SECONDS);
     }
     // Re-arm capture; the player clicks the canvas to grab the mouse again.
     if (!this.hasEnded) {
@@ -171,10 +176,8 @@ export class Game {
     this.hasEnded = true;
     this.isPlaying = false;
     this.inputManager.setPointerLockEnabled(false);
-    const timeUsed = 300 - this.gameTime;
-    let stars = 1;
-    if (timeUsed < 120) stars = 3;
-    else if (timeUsed < 210) stars = 2;
+    const timeUsed = GAME_DURATION - this.gameTime;
+    const stars = starsForTimeUsed(timeUsed);
 
     const mins = Math.floor(timeUsed / 60);
     const secs = Math.floor(timeUsed % 60);
@@ -220,9 +223,30 @@ export class Game {
     `;
     overlay.innerHTML = innerHTML;
     document.body.appendChild(overlay);
+    this.endOverlay = overlay;
     overlay.querySelector('button')!.addEventListener('click', () => {
-      location.reload();
+      this.reset();
     });
+  }
+
+  private reset() {
+    this.endOverlay?.remove();
+    this.endOverlay = null;
+
+    this.hasEnded = false;
+    this.isPlaying = true;
+    this.gameTime = GAME_DURATION;
+    this.elapsedTime = 0;
+    this.clock.getDelta();
+
+    this.playerController.reset(PLAYER_SPAWN);
+    this.cameraController.reset();
+    this.applianceManager.resetAll();
+    this.hud.updateTimer(GAME_DURATION);
+    this.hud.show();
+
+    this.inputManager.setPointerLockEnabled(true);
+    this.renderer.domElement.requestPointerLock?.();
   }
 
   private animate = () => {
@@ -248,12 +272,20 @@ export class Game {
 
     // Look first so movement maps relative to the freshly-updated camera yaw.
     const lookDelta = this.inputManager.consumeLookDelta();
-    this.cameraController.update(delta, lookDelta, this.inputManager.lookSensitivity);
 
     // Input (freeze movement during puzzles)
     const movement = this.puzzleManager.active
       ? new THREE.Vector2()
       : this.inputManager.getMovementVector();
+
+    this.cameraController.update(
+      delta,
+      lookDelta,
+      this.inputManager.lookSensitivity,
+      this.playerController.rotation,
+      movement.lengthSq() > 0,
+    );
+
     this.playerController.update(delta, movement, this.cameraController.yaw);
 
     // Consume the interact latch every frame so a press made while a
@@ -262,7 +294,10 @@ export class Game {
 
     // Interaction
     if (!this.puzzleManager.active) {
-      this.interactionSystem.update(this.playerController.position);
+      this.interactionSystem.update(
+        this.playerController.position,
+        this.inputManager.isTouchDevice,
+      );
       if (interactPressed) {
         const appliance = this.interactionSystem.tryInteract();
         if (appliance && appliance.def.puzzleType !== 'press' && appliance.isOn) {

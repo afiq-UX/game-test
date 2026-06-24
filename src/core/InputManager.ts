@@ -64,6 +64,10 @@ export class InputManager {
     document.addEventListener('mousemove', this.onMouseMove);
   }
 
+  get isTouchDevice(): boolean {
+    return this.touchControls.visible;
+  }
+
   dispose() {
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);

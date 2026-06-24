@@ -1,3 +1,5 @@
+import { APPLIANCE_COUNT } from '../gameplay/ApplianceManager';
+
 export class MenuScreens {
   private startScreen: HTMLDivElement;
   private onStart?: () => void;
@@ -30,7 +32,7 @@ export class MenuScreens {
         text-align: left; line-height: 1.6;
       ">
         <p style="margin: 0 0 8px; font-size: 0.95rem;">
-          <strong>Goal:</strong> Turn off all 20 appliances before time runs out!
+          <strong>Goal:</strong> Turn off all ${APPLIANCE_COUNT} appliances before time runs out!
         </p>
         <p style="margin: 0 0 8px; font-size: 0.95rem;">
           <strong>Move:</strong> WASD / Arrow keys / Joystick
